@@ -59,6 +59,7 @@
             
             add_meta_box ('fuse_updateserver_plugin_sections_meta', __ ('Information Sections', 'fuse'), array ($this, 'sectionsMeta'), $this->getSlug (), 'normal', 'high');
             add_meta_box ('fuse_updateserver_plugin_icons_meta', __ ('Plugin Icons', 'fuse'), array ($this, 'iconsMeta'), $this->getSlug (), 'normal', 'high');
+            add_meta_box ('fuse_updateserver_plugin_screenshots_meta', __ ('Screenshots', 'fuse'), array ($this, 'screenshotsMeta'), $this->getSlug (), 'normal', 'high');
         } // addMetaBoxes ()
         
         /**
@@ -105,6 +106,14 @@
             <?php
         } // iconsMeta ()
         
+        /**
+         *  Set up the screenshots merta box.
+         */
+        public function screenshotsMeta ($post) {
+            $input = new \Fuse\Input\Gallery ('fuse_updateserver_plugin_screenshots', get_post_meta ($post->ID, 'fuse_updateserver_plugin_screenshots', true));
+            $input->render ();
+        } // screenshotsMeta ()
+        
         
         
         
@@ -127,14 +136,17 @@
             // Icons
             foreach ($this->_icons as $key => $label) {
                 if (array_key_exists ('fuse_updateserver_plugin_icon_'.$key, $_POST)) {
-error_log ("Set image ID '".$_POST ['fuse_updateserver_plugin_icon_'.$key]."' for '".$key."'");
                     update_post_meta ($post_id, 'fuse_updateserver_plugin_icon_'.$key, $_POST ['fuse_updateserver_plugin_icon_'.$key]);
                 } // if ()
                 else {
-error_log ("Delted image for '".$key."'");
                     delete_post_meta ($post_id, 'fuse_updateserver_plugin_icon_'.$key);
                 } // else
             } // foreach ()
+            
+            // screenshots
+            if (array_key_exists ('fuse_updateserver_plugin_screenshots', $_POST)) {
+                update_post_meta ($post_id, 'fuse_updateserver_plugin_screenshots', $_POST ['fuse_updateserver_plugin_screenshots']);
+            } // if ()
         } // savePost ()
         
     } // class Plugin
