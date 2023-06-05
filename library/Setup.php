@@ -21,9 +21,13 @@
          *  Initialise our class.
          */
         protected function _init () {
+            // SEt up our post types.
             add_action ('init', array ($this, 'setupPostTypes'), 1);
             
-            // Are we in thea dmin area?
+            // Add our REST server
+            $server =  Server::getInstance ();
+            
+            // Are we in theaadmin area?
             if (is_admin ()) {
                 $admin = Admin::getInstance ();
             } // if ()
