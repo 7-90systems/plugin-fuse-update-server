@@ -22,6 +22,11 @@
          */
         protected $_icons;
         
+        /**
+         *  @var array Set up the banners.
+         */
+        protected $_banners;
+        
         
         
         
@@ -46,6 +51,11 @@
                 'default' => __ ('Default icon', 'fuse'),
                 'svg' => __ ('SVG icon', 'fuse')
             );
+            
+            $this->_banners = array (
+                'low' =>  __ ('Low resolution', 'fuse'),
+                'high' => __ ('High Resolution', 'fuse')
+            );
         } // __construct ()
         
         
@@ -59,7 +69,8 @@
             
             add_meta_box ('fuse_updateserver_plugin_sections_meta', __ ('Information Sections', 'fuse'), array ($this, 'sectionsMeta'), $this->getSlug (), 'normal', 'high');
             add_meta_box ('fuse_updateserver_plugin_icons_meta', __ ('Plugin Icons', 'fuse'), array ($this, 'iconsMeta'), $this->getSlug (), 'normal', 'high');
-            add_meta_box ('fuse_updateserver_plugin_screenshots_meta', __ ('Screenshots', 'fuse'), array ($this, 'screenshotsMeta'), $this->getSlug (), 'normal', 'high');
+            add_meta_box ('fuse_updateserver_plugin_banners_meta', __ ('Plugin Banners', 'fuse'), array ($this, 'bannersMeta'), $this->getSlug (), 'normal', 'high');
+            add_meta_box ('fuse_updateserver_plugin_banners_rtl_meta', __ ('Plugin Banners - RTL', 'fuse'), array ($this, 'bannersRtlMeta'), $this->getSlug (), 'normal', 'high');
         } // addMetaBoxes ()
         
         /**
@@ -107,12 +118,52 @@
         } // iconsMeta ()
         
         /**
-         *  Set up the screenshots merta box.
+         *  Set up the banners meta box.
          */
-        public function screenshotsMeta ($post) {
-            $input = new \Fuse\Input\Gallery ('fuse_updateserver_plugin_screenshots', get_post_meta ($post->ID, 'fuse_updateserver_plugin_screenshots', true));
-            $input->render ();
-        } // screenshotsMeta ()
+        public function bannersMeta ($post) {
+            ?>
+                <p><?php _e ('Banners are shown with the plugin update details.', 'fuse'); ?></p>
+                <table class="form-table">
+                    <?php foreach ($this->_banners as $key => $label): ?>
+                    
+                        <tr>
+                            <th><?php echo $label; ?></th>
+                            <td>
+                                <?php
+                                    $input = new \Fuse\Input\Image ('fuse_updateserver_plugin_banner_'.$key, get_post_meta ($post->ID, 'fuse_updateserver_plugin_banner_'.$key, true));
+                                    $input->render ();
+                                ?>
+                            </td>
+                        </tr>
+                    
+                    <?php endforeach; ?>
+                </table>
+            <?php
+        } // bannersMeta ()
+        
+        /**
+         *  Set up the RTL banners meta box.
+         */
+        public function bannersRtlMeta ($post) {
+            ?>
+                <p><?php _e ('Banners are shown with the plugin update details.', 'fuse'); ?></p>
+                <table class="form-table">
+                    <?php foreach ($this->_banners as $key => $label): ?>
+                    
+                        <tr>
+                            <th><?php echo $label; ?></th>
+                            <td>
+                                <?php
+                                    $input = new \Fuse\Input\Image ('fuse_updateserver_plugin_banner_rtl_'.$key, get_post_meta ($post->ID, 'fuse_updateserver_plugin_banner_rtl_'.$key, true));
+                                    $input->render ();
+                                ?>
+                            </td>
+                        </tr>
+                    
+                    <?php endforeach; ?>
+                </table>
+            <?php
+        } // bannersRtlMeta ()
         
         
         
@@ -143,10 +194,22 @@
                 } // else
             } // foreach ()
             
-            // screenshots
-            if (array_key_exists ('fuse_updateserver_plugin_screenshots', $_POST)) {
-                update_post_meta ($post_id, 'fuse_updateserver_plugin_screenshots', $_POST ['fuse_updateserver_plugin_screenshots']);
-            } // if ()
+            // Banners
+            foreach ($this->_banners as $key => $label) {
+                if (array_key_exists ('fuse_updateserver_plugin_banner_'.$key, $_POST)) {
+                    update_post_meta ($post_id, 'fuse_updateserver_plugin_banner_'.$key, $_POST ['fuse_updateserver_plugin_banner_'.$key]);
+                } // if ()
+                else {
+                    delete_post_meta ($post_id, 'fuse_updateserver_plugin_banner_'.$key);
+                } // else
+                
+                if (array_key_exists ('fuse_updateserver_plugin_banner_rtl_'.$key, $_POST)) {
+                    update_post_meta ($post_id, 'fuse_updateserver_plugin_banner_rtl_'.$key, $_POST ['fuse_updateserver_plugin_banner_rtl_'.$key]);
+                } // if ()
+                else {
+                    delete_post_meta ($post_id, 'fuse_updateserver_plugin_banner_rtl_'.$key);
+                } // else
+            } // foreach ()
         } // savePost ()
         
     } // class Plugin

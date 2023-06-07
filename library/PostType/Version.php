@@ -51,8 +51,8 @@
          *  Add our meta boxes.
          */
         public function addMetaBoxes () {
-            add_meta_box ('fuse_updaeserver_version_download_meta', __ ('Download file', 'fuse'), array ($this, 'downloadMeta'), $this->getSlug (), 'normal', 'high');
-            add_meta_box ('fuse_updaeserver_version_data_meta', __ ('Data Fields', 'fuse'), array ($this, 'dataMeta'), $this->getSlug (), 'normal', 'high');
+            add_meta_box ('fuse_updateserver_version_download_meta', __ ('Download file', 'fuse'), array ($this, 'downloadMeta'), $this->getSlug (), 'normal', 'high');
+            add_meta_box ('fuse_updateserver_version_data_meta', __ ('Data Fields', 'fuse'), array ($this, 'dataMeta'), $this->getSlug (), 'normal', 'high');
         } // addMetaBoxes ()
         
         /**

@@ -32,15 +32,12 @@
          *   Define our REST routes for our server endpoints.
          */
         public function setupRestRoutes () {
-            $setup = register_rest_route ('fuseupdateserver', '/v1', array (
-                'method' => 'post',
+            $setup = register_rest_route ('fuseupdateserver', '/v1/', array (
+                // 'method' => 'POST',
+                'methods' => \WP_REST_Server::CREATABLE,
                 'callback' => array ($this, 'handleServer'),
-                'permissions_callback' => array ($this, 'permissionsAlwaysTrue')
+                'permission_callback' => array ($this, 'permissionsAlwaysTrue')
             ));
-error_log ("REST handler set up... '".$setup."'");
-foreach ($_POST as $key => $val) {
-    error_log ("    -  '".$key."' - '".$val."'");
-}
         } // setupRestRoutes ()
         
         
@@ -63,11 +60,29 @@ foreach ($_POST as $key => $val) {
             );
             
             $action = array_key_exists ('action', $_POST) ? $_POST ['action'] : '';
-            $args = array_key_exists ('request', $_POST) ? unserialize ($_POST ['request']) : array ();
-error_log ("Server action: '".$action."'");
-header ("HTTP/1.1 200 OK");
             
-            
+            if (array_key_exists ($action, $actions)) {
+                $request_class = '\Fuse\Plugin\UpdateServer\Request\\'.$actions [$action];
+                
+                $args = array_key_exists ('request', $_POST) ? unserialize (stripslashes ($_POST ['request'])) : array ();
+                
+                $request = new $request_class ();
+                
+                $result = $this->_arrayToObject ($request->call ($args));
+/*
+error_log ("  - Server action: '".$action."' - setting request handler class '".$actions [$action]."' (".$request_class.")");
+
+ob_start ();
+echo "Result:".PHP_EOL;
+var_export ($result);
+$tmp = ob_get_contents ();
+ob_end_clean ();
+error_log ($tmp);
+*/
+            } // if ()
+            else {
+                $result ['error'] = __ ('Invalid action requested', 'fuse');
+            } // else
             
             echo json_encode ($result);
             die ();
@@ -79,5 +94,25 @@ header ("HTTP/1.1 200 OK");
         public function permissionsAlwaysTrue () {
             return true;
         } // permissionsAlwaysTrue ()
+        
+        
+        
+        
+        /**
+         *  Convert an array into an object.
+         */
+        protected function _arrayToObject ($array) {
+            $object = false;
+            
+            if (count ($array) > 0) {
+                $object = new \stdClass ();
+                
+                foreach ($array as $key => $val) {
+                    $object->{$key} = $val;
+                } // foraech ()
+            } // if ()
+            
+            return $object;
+        } // _arrayToObject ()
         
     } // class Server
