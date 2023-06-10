@@ -28,6 +28,9 @@
             $args = array_merge (array (
                 'public' => true,
                 'publicly_queryable' => true,
+                'has_archive' => true,
+                'rewrite' => true,
+                'show_in_nav_menus' => true,
                 'menu_icon' => 'dashicons-admin-generic'
             ),  $args);
             
