@@ -133,16 +133,16 @@
             
             $type = get_post_meta ($version->ID, 'fuse_updateserver_version_download_type', true);
                 
-            if ($type == 'local') {
-                $file_id = intval (get_post_meta ($version->ID, 'fuse_updateserver_version_upload', $true));
+            $file_id = intval (get_post_meta ($version->ID, 'fuse_updateserver_version_upload', true));
                     
-                if ($file_id > 0) {
-                    $file = wp_get_attachment_url ($file_id);
-                } // if ()
+            if ($file_id > 0) {
+                $file = wp_get_attachment_url ($file_id);
             } // if ()
-            else {
-                $file = get_post_meta ($version->ID, 'fuse_updateserver_version_remote', true);
-            } // else
+            
+            if (strlen ($file) > 0) {
+                // Set up the download recording URL.
+                $file = home_url ('/wp-json/fuseupdateserver/v1/download/'.basename ($file).'?vid='.$version->ID.'&s='.urlencode (base64_encode (home_url ())).'&key='.md5 (current_time ('mysql')), 'https');
+            } // if ()
             
             return $file;
          } // getVersionDownload ()
@@ -195,5 +195,24 @@
             
             return $author;
          } // getAuthor ()
+         
+         
+         
+         
+         /**
+          * Get the count of downloads for this asset.
+          *
+          * return int The number of downloads.
+          */
+         public function getDownloadCount () {
+            global $wpdb;
+            
+            $query = $wpdb->prepare ("SELECT
+                COUNT(id)
+            FROM ".$wpdb->prefix."fuse_updateserver_downloads
+            WHERE asset_id = %d", $this->_post->ID);
+            
+            return $wpdb->get_var ($query);
+         } // getDownloadCount ()
          
     } // class Model

@@ -32,10 +32,17 @@
          *   Define our REST routes for our server endpoints.
          */
         public function setupRestRoutes () {
-            $setup = register_rest_route ('fuseupdateserver', '/v1/', array (
-                // 'method' => 'POST',
+            // Information server
+            $setup = register_rest_route ('fuseupdateserver/v1', '/data/', array (
                 'methods' => \WP_REST_Server::CREATABLE,
                 'callback' => array ($this, 'handleServer'),
+                'permission_callback' => array ($this, 'permissionsAlwaysTrue')
+            ));
+            
+            // Download server
+            $download = register_rest_route ('fuseupdateserver/v1', '/download/(?P<id>[^\/\?]+.zip)', array (
+                'methods' => \WP_REST_Server::ALLMETHODS,
+                'callback' => array ($this, 'handleDownload'),
                 'permission_callback' => array ($this, 'permissionsAlwaysTrue')
             ));
         } // setupRestRoutes ()
@@ -69,7 +76,7 @@
                 $request = new $request_class ();
                 
                 $result = $this->_arrayToObject ($request->call ($args));
-/*
+
 error_log ("  - Server action: '".$action."' - setting request handler class '".$actions [$action]."' (".$request_class.")");
 
 ob_start ();
@@ -78,7 +85,7 @@ var_export ($result);
 $tmp = ob_get_contents ();
 ob_end_clean ();
 error_log ($tmp);
-*/
+
             } // if ()
             else {
                 $result ['error'] = __ ('Invalid action requested', 'fuse');
@@ -99,6 +106,60 @@ error_log ($tmp);
         
         
         /**
+         *  Set up our file download systme.
+         */
+        public function handleDownload ($request) {
+            $response = __ ('An unknown error has occured', 'fuse');
+            
+            if (array_key_exists ('vid', $_GET)) {
+                $version = get_post ($_GET ['vid']);
+                
+                if (empty ($version) === false && in_array ($version->post_type, array ('plugin_version', 'theme_version'))) {
+                    $file = '';
+            
+                    $type = get_post_meta ($version->ID, 'fuse_updateserver_version_download_type', true);
+                    
+                     $file_id = intval (get_post_meta ($version->ID, 'fuse_updateserver_version_upload', true));
+                            
+                    if ($file_id > 0) {
+                            $file = wp_get_attachment_url ($file_id);
+                    } // if ()
+                    
+                    if (empty ($file) === false) {
+                        $this->_recordDownload ($version->ID);
+
+                        header("Pragma: public");
+                        header("Expires: 0");
+                        header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
+                        header("Cache-Control: public");
+                        header("Content-Description: File Transfer");
+                        header("Content-type: application/octet-stream");
+                        header("Content-Disposition: attachment; filename=\"".basename ($file)."\"");
+                        header("Content-Transfer-Encoding: binary");
+                        readfile (get_attached_file ($file_id));
+                        die ();
+                    } // if ()
+                    else {
+                        $response = __ ('No download file available', 'fuse');
+                    } // else
+                } // if ()
+                else {
+                    $response = __ ('Invalid resource requested', 'fuse');
+                } // else
+            } // if ()
+            else {
+                $response = __ ('No resource requested', 'fuse');
+            } // else
+            
+            
+            echo $response;
+            die ();
+        } // handleDownload ()
+        
+        
+        
+        
+        /**
          *  Convert an array into an object.
          */
         protected function _arrayToObject ($array) {
@@ -114,5 +175,37 @@ error_log ($tmp);
             
             return $object;
         } // _arrayToObject ()
+        
+        
+        
+        
+        /**
+         *  Record a download.
+         *
+         *  @param int $version_id The version ID.
+         */
+        protected function _recordDownload ($version_id) {
+            global $wpdb;
+            
+            $version = get_post ($version_id);
+            
+            $remote_site = array_key_exists ('REMOTE_HOST', $_SERVER) ? $_SERVER ['REMOTE_HOST'] : NULL;
+            $ip_address = array_key_exists ('REMOTE_ADDR', $_SERVER) ? $_SERVER ['REMOTE_ADDR'] : NULL;
+            
+            $wpdb->insert ($wpdb->prefix.'fuse_updateserver_downloads', array (
+                'asset_id' => $version->post_parent,
+                'version_id' => $version->ID,
+                'download_date' => current_time ('mysql'),
+                'remote_site' => $remote_site,
+                'ip_address' => $ip_address
+            ), array (
+                '%d',
+                '%d',
+                '%d',
+                '%s',
+                '%s'
+            ));
+        } // _recordDownload ()
+        
         
     } // class Server

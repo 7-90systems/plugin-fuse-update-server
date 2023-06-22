@@ -28,9 +28,6 @@
             $args = array_merge (array (
                 'public' => true,
                 'publicly_queryable' => true,
-                'has_archive' => true,
-                'rewrite' => true,
-                'show_in_nav_menus' => true,
                 'menu_icon' => 'dashicons-admin-generic'
             ),  $args);
             
@@ -64,7 +61,7 @@
                         <th><?php _e ('Download server slug', 'fuse'); ?></th>
                         <td>
                             <input type="text" name="fuse_updateserver_asset_slug" value="<?php esc_attr_e (get_post_meta ($post->ID, 'fuse_updateserver_asset_slug', true)); ?>" class="regular-text" />
-                            <?php if (strpos (get_class ($this), 'Plugin') !== false): ?>
+                            <?php if (strpos (get_class ($this), 'Theme') === false): ?>
                                 <p><?php _e ('Plugins slugs are the plugin folder and main file name. eg: "test-update-plugin/test-update-plugin.php"'); ?></p>
                             <?php else: ?>
                                 <p><?php _e ('Theme slugs are the theme folder. eg: "test-update-theme"'); ?></p>

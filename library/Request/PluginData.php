@@ -73,7 +73,7 @@
                             'requires_php' => get_post_meta ($latest->ID, 'fuse_updateserver_version_data_requires_php', true),
                             'homepage' => $plugin_page,
                             'downloaded' => '1000', /* TODO: ADd downloads  */
-                            'package' => $download_file.'?key=' . md5('plugin.zip' . mktime(0,0,0,date("n"),date("j"),date("Y"))),
+                            'package' => $download_file,
                             'file_name' => basename ($download_file),
                             'sections' => $plugin->getSections (),
                             'icons' => $plugin->getIcons (),

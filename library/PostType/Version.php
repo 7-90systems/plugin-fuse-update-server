@@ -59,41 +59,10 @@
          *  Set up the download file meta box.
          */
         public function downloadMeta ($post) {
-            $type = get_post_meta ($post->ID, 'fuse_updateserver_version_download_type', true);
-            $upload = intval (get_post_meta ($post->ID, 'fuse_updateserver_version_upload', true));
+            $upload = get_post_meta ($post->ID, 'fuse_updateserver_version_upload', true);
             ?>
-                <script type="text/javascript">
-                    var fuse_update_server_download_select;
-                    
-                    jQuery (document).ready (function () {
-                        fuse_update_server_download_select = jQuery ('#fuse_updateserver_version_download_type');
-                        
-                        fuseUpdateServerVersionDownloadSelect ();
-                        fuse_update_server_download_select.change (fuseUpdateServerVersionDownloadSelect);
-                    });
-                    
-                    function fuseUpdateServerVersionDownloadSelect () {
-                        if (fuse_update_server_download_select.val () == 'local') {
-                            jQuery ('#fuse-updateserver-download-local').show ();
-                            jQuery ('#fuse-updateserver-download-remote').hide ();
-                        } // if ()
-                        else {
-                            jQuery ('#fuse-updateserver-download-local').hide ();
-                            jQuery ('#fuse-updateserver-download-remote').show ();
-                        } // else
-                    } // fuseUpdateServerVersionDownloadSelect ()
-                </script>
                 <table class="form-table">
                     <tr>
-                        <th><?php _e ('Download type', 'fuse'); ?></th>
-                        <td>
-                            <select id="fuse_updateserver_version_download_type" name="fuse_updateserver_version_download_type">
-                                <option value="local"<?php selected ($type, 'local'); ?>><?php _e ('Local file', 'fuse'); ?></option>
-                                <option value="remote"<?php selected ($type, 'remote'); ?>><?php _e ('Remote file URL', 'fuse'); ?></option>
-                            </select>
-                        </td>
-                    </tr>
-                    <tr id="fuse-updateserver-download-local">
                         <th><?php _e ('Upload file', 'fuse'); ?></th>
                         <td>
                             <?php if ($upload > 0): ?>
@@ -105,12 +74,6 @@
                                 <br />
                             <?php endif; ?>
                             <input type="file" name="fuse_updateserver_version_upload" />
-                        </td>
-                    </tr>
-                    <tr id="fuse-updateserver-download-remote">
-                        <th><?php _e ('Remote file URL', 'fuse'); ?></th>
-                        <td>
-                            <input type="url" name="fuse_updateserver_version_remote" class="large-text" value="<?php esc_attr_e (get_post_meta ($post->ID, 'fuse_updateserver_version_remote', true)); ?>" />
                         </td>
                     </tr>
                 </table>
@@ -146,22 +109,17 @@
          */
         public function savePost ($post_id, $post) {
             // Download file
-            if (array_key_exists ('fuse_updateserver_version_download_type', $_POST)) {
-                update_post_meta ($post_id, 'fuse_updateserver_version_download_type', $_POST ['fuse_updateserver_version_download_type']);
-                update_post_meta ($post_id, 'fuse_updateserver_version_remote', $_POST ['fuse_updateserver_version_remote']);
+            if (array_key_exists ('fuse_updateserver_version_upload', $_FILES) && $_FILES ['fuse_updateserver_version_upload']['size'] > 0 && $_FILES ['fuse_updateserver_version_upload']['error'] == 0) {
+                $file_id = \Fuse\Util::saveAttachmentFile ($_FILES ['fuse_updateserver_version_upload'], __ ('Verson download file', 'fuse'), $post);
                 
-                if (array_key_exists ('fuse_updateserver_version_upload', $_FILES) && $_FILES ['fuse_updateserver_version_upload']['size'] > 0 && $_FILES ['fuse_updateserver_version_upload']['error'] == 0) {
-                    $file_id = \Fuse\Util::saveAttachmentFile ($_FILES ['fuse_updateserver_version_upload'], __ ('Verson download file', 'fuse'), $post);
+                if ($file_id > 0) {
+                    $current = get_post_meta ($post_id, 'fuse_updateserver_version_upload', true);
                     
-                    if ($file_id > 0) {
-                        $current = get_post_meta ($post_id, 'fuse_updateserver_version_upload', true);
-                        
-                        if ($current > 0) {
-                            wp_delete_attachment ($current, true);
-                        } // if ()
-                        
-                        update_post_meta ($post_id, 'fuse_updateserver_version_upload', $file_id);
+                    if ($current > 0) {
+                        wp_delete_attachment ($current, true);
                     } // if ()
+                    
+                    update_post_meta ($post_id, 'fuse_updateserver_version_upload', $file_id);
                 } // if ()
             } // if ()
             
